@@ -18,6 +18,16 @@ class ApplicationController < Sinatra::Base
 
 	post "/signup" do
 		#your code here!
+
+		# NOTE: we create a new user password by referring to the 'password' attribute
+		# although we have setup the db column as :password_digest.
+		# The has_secure_password macro handles the inner workings of that
+		user = User.new(username: params[:username], password: params[:password])
+		if user.save
+			redirect '/login'
+		else
+			redirect '/failure'
+		end
 	end
 
 
@@ -27,6 +37,17 @@ class ApplicationController < Sinatra::Base
 
 	post "/login" do
 		#your code here!
+		user = User.find_by(username: params[:username])
+
+		# We need to check two conditions: did we find a user with that username?
+		# We also need to check that user's password matches with password_digest
+			# The method 'authenticate' is provided by bcrypt
+		if user && user.authenticate(params[:password])
+			session[:user_id] = user.id
+			redirect '/success'
+		else
+			redirect '/failure'
+		end
 	end
 
 	get "/success" do
